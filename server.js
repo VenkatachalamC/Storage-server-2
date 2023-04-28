@@ -11,8 +11,9 @@ const storage=multer.memoryStorage();
 const upload=multer({storage:storage});
 const UserModel=require('./models/users');
 const DocumentModel=require('./models/documents')
+const port =process.env.port || 6000
 
-mongoose.connect('mongodb+srv://test:test123@cluster0.8w2bjpt.mongodb.net/cloud').then(result=>app.listen(6000));
+mongoose.connect('mongodb+srv://test:test123@cluster0.8w2bjpt.mongodb.net/cloud').then(result=>app.listen(port));
 
 //ok
 app.post('/signup',(req,res)=>{
