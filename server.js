@@ -8,14 +8,13 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended:true}));
 const storage=multer.memoryStorage();
-const upload=multer({storage:storage});
+const upload=multer({storage:storage,limits: { fieldSize: 25 * 1024 * 1024 }});
 const UserModel=require('./models/users');
 const DocumentModel=require('./models/documents')
 const port =process.env.port || 6000
 
 mongoose.connect('mongodb+srv://test:test123@cluster0.8w2bjpt.mongodb.net/cloud').then(result=>app.listen(port));
 
-//ok
 app.post('/signup',(req,res)=>{
     UserModel.find({name:req.body.name}).then(result=>{
         if(result.length==1){
@@ -33,27 +32,25 @@ app.post('/signup',(req,res)=>{
         }
     })
 })
-//ok
 app.post('/document',upload.single('file'),(req,res)=>{
+    const file=JSON.parse(req.body.file)
     const Doc = new DocumentModel({
         userid: req.body.userid,
-        fileName: req.body.fileName,
-        filetype: req.body.filetype,
+        fileName: file.originalname,
+        filetype: file.mimetype,
         Document: {
-            data: req.body.data,
-            contentType: req.body.filetype
+            data: file.buffer,
+            contentType: file.mimetype
         }
     })
     Doc.save()
         .then(result => res.json({ status: "file uploaded successfully" }))
 })
-//ok
 app.post('/restore',(req,res)=>{
     DocumentModel.findOneAndUpdate({fileName:req.body.fname,userid:req.body.uid},{$set:{Deleted:false}})
     .then(result=>res.json({status:"ok"}))
 })
 
-//ok
 app.post('/rename',(req,res)=>{
     DocumentModel.findOneAndUpdate({
         userid:req.body.userid,
@@ -62,7 +59,6 @@ app.post('/rename',(req,res)=>{
         fileName:req.body.newname
     }}).then(result=>res.json({status:'ok'})).catch(err=>res.json({status:'error'}))
 })
-//ok
 app.delete('/deactivate',(req,res)=>{
     UserModel.findOneAndDelete({userid:req.body.uid})
     .then(result=>{
@@ -72,12 +68,10 @@ app.delete('/deactivate',(req,res)=>{
     })
 })
 
-//ok
 app.delete('/Delete',(req,res)=>{
     DocumentModel.findOneAndUpdate({fileName:req.body.name,userid:req.body.uid},{$set:{Deleted:true}}).then(result=>res.json({status:"ok"}))
 })
 
-//ok
 app.delete('/permanentdelete',(req,res)=>{
     DocumentModel.findOneAndDelete({userid:req.body.uid,fileName:req.body.name})
     .then(result=>res.json({status:"ok"}))
